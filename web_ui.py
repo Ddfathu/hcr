@@ -5,7 +5,6 @@ from flask import Flask, request, render_template_string
 
 app = Flask(__name__)
 
-# State Konfigurasi Default
 CONFIG = {
     "port": os.getenv("PORT", "8080"),
     "max_frame": "4096",
@@ -17,14 +16,11 @@ CONFIG = {
 hcr_proc = None
 
 def update_ssh_credentials(user, password):
-    # Jika user belum ada, buat user baru
     check_user = subprocess.run(["id", user], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     if check_user.returncode != 0:
         subprocess.run(["useradd", "-m", "-s", "/bin/bash", user])
     
-    # Update password akun
-    proc = subprocess.Popen(["chpasswd"], stdin=subprocess.PIPE, text=True)
-    proc.communicate(input=f"{user}:{password}\n")
+    subprocess.run(["sh", "-c", f"echo '{user}:{password}' | chpasswd"])
     CONFIG["ssh_user"] = user
     CONFIG["ssh_pass"] = password
 
@@ -51,22 +47,82 @@ def run_hcr(frame, timeout):
 
 HTML_PAGE = """
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>HCR Server & SSH Manager</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f172a; color: #f8fafc; padding: 15px; margin: 0; }
-        .card { max-width: 440px; margin: auto; background: #1e293b; padding: 24px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.5); }
-        h2 { margin-top: 0; font-size: 20px; color: #38bdf8; text-align: center; }
-        label { font-size: 13px; font-weight: 600; color: #94a3b8; display: block; margin-top: 12px; }
-        select, input, button { width: 100%; padding: 10px; margin-top: 6px; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
-        select, input { background: #0f172a; color: #f8fafc; border: 1px solid #334155; }
-        select:focus, input:focus { border-color: #38bdf8; outline: none; }
-        button { background: #0284c7; color: white; font-weight: bold; border: none; cursor: pointer; margin-top: 20px; padding: 12px; }
-        button:hover { background: #0369a1; }
-        .status { padding: 10px; background: #065f46; color: #34d399; border-radius: 6px; margin-bottom: 15px; font-size: 13px; text-align: center; }
-        .divider { border-top: 1px solid #334155; margin: 18px 0 6px 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #0f172a;
+            color: #f8fafc;
+            padding: 15px;
+            margin: 0;
+        }
+        .card {
+            max-width: 440px;
+            margin: auto;
+            background: #1e293b;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.5);
+        }
+        h2 {
+            margin-top: 0;
+            font-size: 20px;
+            color: #38bdf8;
+            text-align: center;
+        }
+        label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #94a3b8;
+            display: block;
+            margin-top: 12px;
+        }
+        select, input, button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 6px;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+        select, input {
+            background: #0f172a;
+            color: #f8fafc;
+            border: 1px solid #334155;
+        }
+        select:focus, input:focus {
+            border-color: #38bdf8;
+            outline: none;
+        }
+        button {
+            background: #0284c7;
+            color: white;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            margin-top: 20px;
+            padding: 12px;
+        }
+        button:hover {
+            background: #0369a1;
+        }
+        .status {
+            padding: 10px;
+            background: #065f46;
+            color: #34d399;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-size: 13px;
+            text-align: center;
+        }
+        .divider {
+            border-top: 1px solid #334155;
+            margin: 18px 0 6px 0;
+        }
     </style>
 </head>
 <body>
@@ -124,10 +180,7 @@ def index():
         user = request.form.get("ssh_user", "root").strip()
         password = request.form.get("ssh_pass", "PasswordHCR123").strip()
         
-        # Terapkan perubahan SSH Credentials
         update_ssh_credentials(user, password)
-        
-        # Restart HCR server dengan parameter baru
         run_hcr(frame, timeout)
         
         msg = f"Tersimpan! Akun: {user} | Frame: {frame} | Timeout: {timeout}"
