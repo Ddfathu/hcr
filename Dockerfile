@@ -17,6 +17,7 @@ RUN mkdir -p /var/run/sshd /app/certs && \
     echo "PasswordAuthentication yes" >> /etc/ssh/sshd_config
 
 WORKDIR /app
+COPY certs /app/certs
 COPY hcr-server /app/hcr-server
 COPY entrypoint.sh /app/entrypoint.sh
 COPY web_ui.py /app/web_ui.py
