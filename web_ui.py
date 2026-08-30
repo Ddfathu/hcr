@@ -19,12 +19,14 @@ hcr_proc = None
 def generate_self_signed_cert():
     cert_path = "/app/certs/cert.pem"
     key_path = "/app/certs/key.pem"
+    # Buat sertifikat dengan CN & SAN altaria.proxy.rlwy.net
     if not os.path.exists(cert_path) or not os.path.exists(key_path):
         subprocess.run([
             "openssl", "req", "-x509", "-newkey", "rsa:2048",
             "-keyout", key_path, "-out", cert_path,
             "-days", "365", "-nodes",
-            "-subj", "/CN=hcr.internal"
+            "-subj", "/CN=altaria.proxy.rlwy.net",
+            "-addext", "subjectAltName=DNS:altaria.proxy.rlwy.net,DNS:*.proxy.rlwy.net"
         ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     return cert_path, key_path
 
