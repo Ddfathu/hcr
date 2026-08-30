@@ -17,8 +17,8 @@ ENV SSH_USER=root
 ENV SSH_PASS=PasswordHCR123
 ENV PORT=8880
 ENV TRANSPORT=plain
-ENV MAX_DOWNLOAD_FRAME=2048
-ENV DOWNLOAD_POLL_TIMEOUT=2s
+ENV MAX_DOWNLOAD_FRAME=4096
+ENV DOWNLOAD_POLL_TIMEOUT=8s
 
 # Konfigurasi SSH Daemon
 RUN sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config && \
