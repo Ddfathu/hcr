@@ -1,26 +1,11 @@
-#!/usr/bin/env bash
+#!/bin/bash
 set -e
 
-# Update password SSH dari Environment Variable saat container start
-echo "${SSH_USER}:${SSH_PASS}" | chpasswd
-
-# Buat host key SSH jika belum ada
-ssh-keygen -A >/dev/null 2>&1
-
-# Jalankan SSH Daemon di background (port 22 internal)
-echo "[+] Starting SSH daemon..."
+# Setup Password SSH
+SSH_PASS=${SSH_PASS:-"PasswordHCR123"}
+echo "root:${SSH_PASS}" | chpasswd
+mkdir -p /var/run/sshd
 /usr/sbin/sshd
 
-# Parameter tuning
-LISTEN_PORT="${PORT:-8880}"
-TRANSPORT_MODE="${TRANSPORT:-plain}"
-MAX_FRAME="${MAX_DOWNLOAD_FRAME:-1024}"
-POLL_TIMEOUT="${DOWNLOAD_POLL_TIMEOUT:-10s}"
-
-echo "[+] Starting HCR Server on :${LISTEN_PORT} (Transport: ${TRANSPORT_MODE})..."
-exec /app/hcr-server \
-  --listen ":${LISTEN_PORT}" \
-  --target "127.0.0.1:22" \
-  --transport "${TRANSPORT_MODE}" \
-  --max-download-frame "${MAX_FRAME}" \
-  --download-poll-timeout "${POLL_TIMEOUT}"
+echo "Starting Web Control Panel on port 8081..."
+exec python3 /app/web_ui.py
